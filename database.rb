@@ -1,5 +1,5 @@
 ## = = = = = = = = = = = = = ##
-##   DATABASE
+##   database
 ## = = = = = = = = = = = = = ##
   
 namespace :deploy do

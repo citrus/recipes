@@ -1,5 +1,5 @@
 ## = = = = = = = = = = = = = ##
-##   COMPRESS ASSETS
+##   compressed assets
 ## = = = = = = = = = = = = = ##
 
 require 'fileutils' unless defined?(FileUtils)

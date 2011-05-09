@@ -1,5 +1,5 @@
 ## = = = = = = = = = = = = = ##
-##   ASSETS
+##   shared assets
 ## = = = = = = = = = = = = = ##
   
 namespace :deploy do

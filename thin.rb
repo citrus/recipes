@@ -1,5 +1,5 @@
 ## = = = = = = = = = = = = = ##
-##   THIN SERVER
+##   thin
 ## = = = = = = = = = = = = = ##
 
 namespace :deploy do
@@ -21,7 +21,7 @@ namespace :deploy do
     end
   
   end
-    
+  
   desc "Custom restart task for thin cluster"
   task :restart, :roles => :app, :except => { :no_release => true } do
     thin.restart
