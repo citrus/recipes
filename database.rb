@@ -6,7 +6,7 @@ namespace :deploy do
 
   desc "Uploads the database.yml file to the shared folder."
   task :upload_database_yml do
-    yml = 'config/database.yml.slice'
+    yml = "config/database.yml.#{defined?(DEV) && DEV ? 'dev' : 'pro'}"
     if File.exists?(yml)
       put(File.read(yml), "#{shared_path}/database.yml", :mode => 0644)
       deploy.share_database_yml

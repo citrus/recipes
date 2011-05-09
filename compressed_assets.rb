@@ -4,67 +4,79 @@
 
 require 'fileutils' unless defined?(FileUtils)
 
+YUI = '/usr/local/yui/build/yuicompressor-2.4.2.jar'
+OUT = 'public/compressed'
 
 def remote_file_exists?(full_path)
   'true' ==  capture("if [ -e #{full_path} ]; then echo 'true'; fi").strip
 end
 
+def _yui_compress(pattern)
+  files = Dir[pattern].reject{|f| f =~ /\/cache\// }
+  raise "No Files Found" if files.length == 0
+  
+  FileUtils.mkdir_p OUT
+
+  files.each do |f|
+    print " - compressing #{f}. "
+    _in  = File.expand_path(f)
+    _out = _in.sub('/public/', '/public/compressed/')
+    _dir = File.dirname(_out)
+    FileUtils.mkdir_p(_dir) unless Dir.exists?(_dir)
+    
+    cmd = "java -jar #{YUI} #{_in} -o #{_out}"
+    `#{cmd}`
+    
+    puts " done."
+  end
+end
+
 namespace :deploy do
   
   desc "Uses the YUI compresser on all JS/CSS, then uploads to server"
-  task :compress_and_upload do
-    yui_compress
+  task :compress_upload_and_enable do
+    compress.all
     upload_compressed
-    
-    jq_core = "#{current_path}/public/javascripts/jquery-core.js"
-    if remote_file_exists?(jq_core)
-      run("rm #{jq_core}")
+    css = "#{current_path}/public/stylesheets"
+    if remote_file_exists?(css)
+      run "rm -r #{css}"
+    end    
+    js = "#{current_path}/public/javascripts"
+    if remote_file_exists?(js)
+      run "rm -r #{js}"
     end
-    
-    FileUtils.rm_r('public/compressed')
-  end
-  
-  desc "Uses the YUI compresser on all JS/CSS"
-  task :yui_compress do
-    yui = '/usr/local/yui/build/yuicompressor-2.4.2.jar'
-    if File.exists?(yui)
-      compressed = 'public/compressed'
-      FileUtils.mkdir_p compressed      
-      ['javascripts','stylesheets'].each do |dir|
-        files = Dir.entries("public/#{dir}").reject{|f| f.match(/\.(js|css)$/) == nil }
-        puts "Compressing #{files.length} #{dir}!"
-        out = compressed + "/#{dir}"
-        FileUtils.remove_dir(out, true) if File.directory?(out)
-        FileUtils.mkdir_p out
-        files.each do |f|
-          print " - compressing #{f}. "
-          file = File.expand_path("public/#{dir}/" + f)
-          new_file = File.join(File.expand_path('public'), 'compressed', dir, f)
-          `java -jar #{yui} #{file} -o #{new_file}`
-          puts " done."
-        end
-      end
-    else
-      puts "Please make sure that '#{yui}' exists."
-    end
+    enable_compressed
   end
   
   desc "Uploads the public/compressed files to the server"
   task :upload_compressed do
+    raise "Compressed Directory not found" unless Dir.exists?(OUT)
+    cmd = "scp -r -P #{port} #{OUT} #{user}@#{domain}:#{current_path}/public/"
+    puts cmd
+    `#{cmd}`
+  end
     
-    ['javascripts','stylesheets'].each do |dir_name|
-      dir = "public/compressed/#{dir_name}"
-      if File.directory?(dir)        
-        dir = File.expand_path dir
-        to_dir = "#{current_path}/public"
-        cmd = "scp -r -P #{port} #{dir} #{user}@#{domain}:#{to_dir}"
-        puts cmd 
-        `#{cmd}`
-      else
-        puts "#{dir} does not exist! Run `cap:deploy:yui_compress` to create.."
-      end    
+  desc "Replaces the remote uncompressed versions with the compressed ones"
+  task :enable_compressed do
+    run "cd #{current_path}/public/compressed; mv ./stylesheets ../; mv ./javascripts ../"
+  end
+    
+  namespace :compress do
+    desc "Uses the YUI compresser on all JS/CSS"
+    task :all do
+      css
+      js 
     end
-    
+    desc "Uses the YUI compresser on all stylesheets"
+    task :css do
+      puts "Compressing Stylesheets!"
+      _yui_compress("public/stylesheets/**/*.css")      
+    end
+    desc "Uses the YUI compresser on all javscripts"
+    task :js do
+      puts "Compressing Javascripts!"
+      _yui_compress("public/javascripts/**/*.js")
+    end    
   end
       
 end

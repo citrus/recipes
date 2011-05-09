@@ -16,7 +16,7 @@ namespace :deploy do
     end
    
     desc "Configure thin cluster"    
-    task :configure, :roles => :app do
+    task :config, :roles => :app do
       sudo "thin config -C #{server_config} -c #{current_path} -p #{server_port} -e #{environment} -s #{servers}" 
     end
   

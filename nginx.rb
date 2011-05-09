@@ -1,8 +1,10 @@
 ## = = = = = = = = = = = = = ##
-##   nginx
+##   
+##  nginx!
+##  
 ## = = = = = = = = = = = = = ##
-  
 
+  
 def remote_file_exists?(full_path)
   'true' ==  capture("if [ -e #{full_path} ]; then echo 'true'; fi").strip
 end
@@ -26,11 +28,15 @@ end
 def nginx_enabled?(conf)
   remote_file_exists? nginx_enabled(conf)
 end
-
-
   
 namespace :deploy do
   namespace :nginx do
+  
+    desc "uploads and enables the vhost"
+    task :upload_and_enable do
+      upload
+      enable
+    end
     
     desc "Uploads the vhost.conf file to the nginx folder."
     task :upload do
@@ -61,7 +67,6 @@ namespace :deploy do
       end
     end 
     
-    
     desc "Disables the vhost.conf"
     task :disable do
       if nginx_enabled?(application)
@@ -71,8 +76,6 @@ namespace :deploy do
         puts "Application is not enabled. Run `cap deploy:nginx:enable` to enable..."
       end
     end 
-    
-    
     
     desc "Restarts Nginx"
     task :start do
@@ -85,5 +88,4 @@ namespace :deploy do
     end
         
   end
-
 end
