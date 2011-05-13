@@ -1,6 +1,10 @@
 ## = = = = = = = = = = = = = ##
 ##   database
 ## = = = = = = = = = = = = = ##
+
+def remote_file_exists?(full_path)
+  'true' ==  capture("if [ -e #{full_path} ]; then echo 'true'; fi").strip
+end
   
 namespace :deploy do
 
@@ -18,11 +22,10 @@ namespace :deploy do
   desc "Symlinks the db file.."
   task :share_database_yml do
     yml = 'database.yml'
-    listing = capture("ls #{current_path}/config")
-    if listing.include?(yml)
+    if remote_file_exists?("#{current_path}/config/#{yml}")
       run("rm #{current_path}/config/#{yml}")
     end
-    run("ln -s #{shared_path}/#{yml} #{current_path}/config/#{yml}")    
+    run("ln -s #{shared_path}/#{yml} #{current_path}/config/#{yml}")
   end  
   
 end
