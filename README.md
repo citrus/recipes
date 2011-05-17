@@ -24,6 +24,8 @@ Some tips
 * The thin and recipe uses sudo for `thin config`
 * Log rotate uses sudo since it modifies your `/etc/logrotate.conf`
 * The shared_assets recipe is useful for [Spree](http://spreecommerce.com) sites that don't use capistrano's shared `system` folder
+* `tailer.rb` can take some arguments: `cap deploy:tail log=custom len=200` (log defaults to "production" and len is "-f" by default to follow the log as it's being written)
+
 
 License
 -------
